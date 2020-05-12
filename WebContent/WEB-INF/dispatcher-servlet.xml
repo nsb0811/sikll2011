@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	
+	<!--context를 선언해 주면 bean을 안만들어도 된다. 아래는 그냥 테스트로  bean 넣은것 안넣어도 잘됨 -->
+	<context:annotation-config/>
+	<context:component-scan base-package="contribution.*"></context:component-scan>
+	
+	<!--beanNameViewResolver view를 상속받고 있는 클래스로 만든 bean 중 같은 이름을 가진 bean을 찾음 -->
+	<bean id="viewResolver1" class="org.springframework.web.servlet.view.BeanNameViewResolver" />
+		
+	<!--tilesViewResolver: definition설정 파일(xml)에서 view name과 같은 이름의 definition을 실행함  -->
+	<bean id="tilesviewResolver" class="org.springframework.web.servlet.view.tiles3.TilesViewResolver" />
+	
+	<!--어떤 definition설정파일을 쓰는지 알려줌  -->
+	<bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+		<property name="definitions">
+			<list>
+				<value>/WEB-INF/tiles_def/tilesdef.xml</value>
+			</list>
+		</property>
+		<!--bean의 이름을 적어주면 해당 이름의 bean을 prepare로 사용할 것이다  -->
+		<property name="preparerFactoryClass" value="org.springframework.web.servlet.view.tiles3.SpringBeanPreparerFactory"/>
+	</bean>
+		
+	<bean id="viewResolver"	class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/view/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+	
+	<bean id = "multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value = "100000000"></property>
+		<property name="maxInMemorySize" value = "100000000"></property>
+	</bean>
+	
+	<!--context를 선언해도 이것은 springframework에서 제공하는 것으로 무조건 작성해야 하는 bean  -->
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>message.validation</value>
+				<value>message.label</value>
+			</list>
+		</property>
+	</bean>
+	
+	
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/html;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+<mvc:annotation-driven />
+
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver"/>
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"
+			p:paramName="language"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+	<property name="exceptionMappings">
+		<props>
+			<prop key="java.lang.Exception">
+				error/exception
+			</prop>
+		</props>
+	</property>
+	</bean> 
+	
+</beans>

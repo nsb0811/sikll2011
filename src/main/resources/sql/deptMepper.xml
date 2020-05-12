@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Kim">
+<select id="select-bookmark" parameterType="map" resultType="int">
+select count(*) from organization_bookmarks where user_idx=#{user_idx} and organization_id =#{organization_id}
+</select>
+<insert id="insert-bookmark" parameterType="map">
+insert into organization_bookmarks values(#{user_idx},#{organization_id},#{nanmmbyNm})
+</insert>
+<delete id="delete-bookmark" parameterType="map">
+delete from organization_bookmarks where  user_idx=#{user_idx}  and organization_id =#{organization_id}
+</delete>
+<select id="select-organization_id" parameterType="int" resultType="contribution.model.BookmarkDto">
+select organization_id from organization_bookmarks where user_idx=#{user_idx}
+</select>
+
+
+ 
+<insert id="insert-group_user" parameterType="map">
+insert into users (user_id,password,user_type_id,nickname,register_date,organization_id,name) values(#{user_id},#{password},2,#{nickname},#{register_date},#{organization_id},#{name})
+</insert>
+<insert id="insert-organizations" parameterType="contribution.model.GroupUserCommand">
+insert into organizations values(#{organization_id},#{nanmmByNm},#{rprsntvNm},#{fondDe},#{cntrDdcTy},#{ctbgrnpAppnNo},#{dmstcTelno},#{fxnum},#{adres},#{adres_detail},#{zip},#{hmpadres},#{bizrno},#{type_id})
+</insert>
+<select id="select-organizations_count" parameterType="String" resultType="int">
+select count(*) from organizations where organization_id=#{organization_id}
+</select>
+<select id="select-organizationsAll" parameterType="String" resultType="contribution.model.GroupUserCommand">
+select * from organizations where organization_id=#{organization_id}
+</select>
+
+<select id="select-programCount" parameterType="String"  resultType="int">
+select count(*) from programs where organization_id=#{organization_id}
+</select>
+
+<select id="select-programAll" parameterType="String" resultType="contribution.model.Program">
+select * from programs where organization_id=#{organization_id} and approval_flg=1
+</select>
+ 
+<select id="select-programImgae" parameterType="String" resultType="map">
+select image_url from program_images where organization_id=#{organization_id} and original_file_name=#{original_file_name}
+</select>
+
+<select id="selectCount-organizationsLogo" parameterType="String" resultType="int">
+select count(*) from organization_logos where organization_id=#{organization_id}
+</select>
+
+<insert id="insert-organizationsLogo" parameterType="map">
+insert into organization_logos  values(#{organization_id},#{url},#{original_file_name},#{stored_file_name})
+</insert> 
+
+<select id="select-organizationsLogoFilename" parameterType="String" resultType="String">
+select stored_file_name from organization_logos where organization_id=#{organization_id}
+</select>
+<select id="select-organizationsLogoFilenameList" parameterType="String" resultType="String">
+select stored_file_name from organization_logos where organization_id=#{organization_id}
+</select>
+
+<select id="select-organizationsLogoAll" parameterType="String" resultType="contribution.model.OrganizationLogosDto">
+select * from organization_logos where organization_id=#{organization_id}
+</select>
+
+<select id="select-userAll" parameterType="int" resultType="contribution.model.GroupUserCommand">
+  select * from users where user_idx=#{user_idx}
+</select>
+
+
+
+<update id="update-User" parameterType="map">
+update users set password = #{password}, nickname=#{nickname},user_id=#{user_id} where user_idx=#{user_idx}
+</update>
+
+<delete id="delete-logo" parameterType="String">
+delete from organization_logos  where  organization_id =#{organization_id}
+</delete>
+
+<delete id="delete-organizations" parameterType="String">
+delete from organizations where organization_id =#{organization_id}
+</delete>
+
+
+
+
+</mapper>

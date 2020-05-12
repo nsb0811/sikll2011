@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="gibunigajoa">
+<!--아이디 중복체크 -->
+<select id="signupIdCheck" parameterType="String" resultType="int">select count(*) from users where user_id=#{user_id}</select>
+<!--개인회원가입 Insert  -->
+<insert id="memberInsert" parameterType="contribution.model.UserCommand">insert into users values(#{user_idx}, #{user_id}, #{password}, #{name}, #{nickname}, #{birthday}, #{phone_number}, #{register_date}, #{grade}, #{user_type_id}, #{organization_id})</insert>
+<!--로그인 체크 -->
+<select id="loginCheck" parameterType="map" resultType="contribution.model.UserCommand">select * from users where user_id=#{user_id} and password=#{password}</select>
+<!--카카오&네이버 회원정보저장  -->
+<insert id="kakaoNaverInsert" parameterType="contribution.model.UserCommand">insert into users (user_id, name, nickname, register_date, grade, user_type_id, organization_id) values(#{user_id}, #{name}, #{nickname}, #{register_date}, #{grade}, #{user_type_id}, #{organization_id})</insert>
+
+<!--카카오&네이버 로그인 -->
+<select id="kakaoNaverloginCheck" parameterType="String" resultType="contribution.model.UserCommand">select * from users where user_id=#{user_id}</select>
+<!--등급을 위한 사용가 총 기부내역 sum -->
+<select id="contributionSum" parameterType="int" resultType="int">select sum(contribution) from contribution_history where user_idx=#{user_idx}</select>
+<!-- 일정금액 기부시 등급 update-->
+<update id="updateGrade" parameterType="map">update users set grade=#{grade} where user_idx=#{user_idx}</update>
+<!-- user 등급확인 -->	
+<select id="gradeCheck" parameterType="int" resultType="int">select grade from users where user_idx=#{user_idx}</select>
+
+<!--main 최근관심 게시물 리스트  -->
+<select id="readCntList" resultType="contribution.model.ProgramBannerDto" parameterType="Date">select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1 and end_date >= #{date} order by readcount desc limit 3</select>
+<!--main 마감임박 게시물 리스트  -->
+<select id="dateAscList" resultType="contribution.model.ProgramBannerDto" parameterType="Date">select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1 and end_date >= #{date} order by end_date asc limit 3</select>
+<!--main 배너 최신 게시물 홍보  -->
+<select id="newAscList" resultType="contribution.model.ProgramBannerDto" parameterType="Date">select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1 and end_date >= #{date} and approval_date is not null order by approval_date desc limit 3</select>
+
+</mapper> 

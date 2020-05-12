@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="program">
+
+	<select id = "selectProgram" parameterType="map" resultType="contribution.model.Program">
+		select * from programs where organization_id = #{organization_id} AND program_id = #{program_id}
+	</select>
+	<select id = "selectProgramCount" parameterType="String" resultType="int">
+		select case when program_id is null then 0 else max(program_id)+1 end from programs where organization_id = #{organization_id}
+	</select>
+	
+	<select id = "selectAllType" resultType="contribution.model.Type">
+		select * from types
+	</select>
+	
+	<select id = "selectType" resultType = "String" parameterType="int">
+		select type from types where type_id = #{type_id}
+	</select>
+	
+	<!-- 기부단체 프로그램신청 등록 -->
+	<insert id="insertProgram" parameterType="contribution.model.Program">
+		insert into programs(organization_id, program_id, program_subject, type_id, start_date, end_date, target_amount, purpose, summary, content, organization_url, bank_name, account, phone_number, representative, usage_plan) values (#{organization_id}, #{program_id}, #{program_subject}, #{type_id}, #{start_date}, #{end_date}, #{target_amount}, #{purpose}, #{summary}, #{content}, #{organization_url}, #{bank_name}, #{account}, #{phone_number}, #{representative}, #{usage_plan})
+	</insert>
+	
+	<!-- 메인, 프로그램리스트에서 분야별로 검색 -->
+	<select id = "selectTypeProgram" parameterType = "int" resultType="map">
+		select program_subject, summary from programs where program_id = #{program_id} and organization_id = #{organization_id} and type_id = #{type_id}
+	</select>
+	
+	<!-- 메인, 프로그램리스트에서 전체 검색 -->
+	<select id = "selectAllProgram" parameterType = "int" resultType="map">
+		select program_subject, summary from programs where program_id = #{program_id} and organization_id = #{organization_id}
+	</select>
+	
+	<!-- 프로그램의 모든 이미지 -->
+	<select id = "selectProgramImages" parameterType = "map" resultType = "String">
+		select stored_file_name from program_images where program_id = #{program_id} and organization_id = #{organization_id}
+	</select>
+	
+	<!-- 미사용 -->
+	<!-- 프로그램의 모든 이미지의 원본이름 -->
+<!-- 	<select id = "selectProgramImagesFileName" parameterType = "map" resultType = "map">
+		select original_file_name from program_images where program_id = #{program_id} and organization_id = #{organization_id}
+	</select> -->
+	
+	 <!-- 프로그램의 모든 이미지의 원본이름, 저장된 파일명 -->
+	<!--<select id = "selectProgramImagesFileName" parameterType = "map" resultType = "map">
+		select original_file_name, stored_file_name from program_images where program_id = #{program_id} and organization_id = #{organization_id}
+	</select> -->
+	
+	<!-- 프로그램의 모든 이미지의 원본이름, 저장된 파일명 -->
+	<select id = "selectProgramImagesFileName" parameterType = "map" resultType = "contribution.model.ProgramImage">
+		select original_file_name, stored_file_name from program_images where program_id = #{program_id} and organization_id = #{organization_id}
+	</select>
+	
+	<!-- 미승인된 프로그램 - 배너, 이미지 접근불가-->
+	<!-- 프로그램수정 -->
+	<update id="updateProgram" parameterType = "contribution.model.Program" >
+		update programs set program_subject = #{program_subject}, type_id = #{type_id}, start_date = #{start_date}, end_date = #{end_date}, target_amount = #{target_amount}, purpose = #{purpose}, summary = #{summary}, content = #{content}, organization_url = #{organization_url}, bank_name = #{bank_name}, account = #{account}, phone_number = #{phone_number}, representative = #{representative}, usage_plan = #{usage_plan} where program_id = #{program_id} AND organization_id = #{organization_id}
+	</update>
+	
+	
+	<!-- 승인된 프로그램 - 배너, 이미지 접근가능-->
+	<!-- 프로그램수정 -->
+	<update id="updateProgramApproval" parameterType = "contribution.model.Program" >
+		update programs set program_subject = #{program_subject}, type_id = #{type_id}, start_date = #{start_date}, end_date = #{end_date}, target_amount = #{target_amount}, purpose = #{purpose}, summary = #{summary}, content = #{content}, organization_url = #{organization_url}, bank_name = #{bank_name}, account = #{account}, phone_number = #{phone_number}, representative = #{representative}, banner_file_name = #{banner_file_name}, usage_plan = #{usage_plan}, original_file_name = #{original_file_name} where program_id = #{program_id} AND organization_id = #{organization_id}
+	</update>
+	
+	<!-- 프로그램 이미지 등록 -->
+	<insert id="insertProgramImage" parameterType="contribution.model.ProgramImage">
+		insert into program_images (program_id, organization_id, stored_file_name, image_url, original_file_name) values (#{program_id}, #{organization_id}, #{stored_file_name}, #{image_url}, #{original_file_name})
+	</insert>
+	
+	<!-- 관리자 - 신청한 프로그램 전체 확인 -->
+	<select id="selectAllRequestProgram" resultType="contribution.model.Program">
+		select * from programs
+	</select>
+	
+	<!-- 승인, 미승인 프로그램 확인 -->
+	<select id="selectApprovalProgram" parameterType="int" resultType="contribution.model.Program">
+		select * from programs where approval_flg = #{approval_flg}
+	</select>
+	
+		<!-- 관리자용 신청프로그램리스트 -->
+	<select id = "selectAllRequestProgramList" resultType="contribution.model.Program">
+		select program_id, program_subject, start_date, end_date, approval_date, approval_flg, organization_id from programs;
+	</select>
+	
+	<!-- 관리자용 승인 수정 -->
+	<update id="updateApprovalFlg" parameterType="map">
+		update programs set approval_flg = #{approval_flg} where program_id = #{program_id} AND organization_id = #{organization_id}
+	</update>
+	
+	<!-- 프로그램 모집금액 합계계산 -->
+	<select id="calcTargetAmount" resultType="int" parameterType="map">
+		select sum(contribution) from contribution_history where program_id = #{program_id} AND organization_id = #{organization_id}
+	</select>
+	
+	<!-- 조회수 증가 -->
+	<update id="updateProgramReadcount" parameterType="map">
+		update programs set readcount = readcount+1 where organization_id = #{organization_id} and program_id = #{program_id}
+	</update>
+	
+	<!-- 개인회원용 모집프로그램리스트 - 승인받은 전체프로그램-->
+	<select id="getAllProgramList" resultType="contribution.model.ProgramBannerDto">
+		select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1
+	</select>
+	
+	<!-- 개인회원용 모집프로그램리스트 - 승인받은 분야별프로그램-->
+	<select id="getTypeProgramList" resultType="contribution.model.ProgramBannerDto" parameterType="int">
+		select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1 AND type_id = #{type_id}
+	</select>
+	
+	<!-- 기관명만 습득 -->
+	<select id="getOrganizationName" resultType="String" parameterType="String">
+		select nanmmByNm from organizations where organization_id = #{organization_id}
+	</select>
+	
+	<!-- 프로그램수정시 이미지 삭제 -->
+	<delete id="deleteImages" parameterType="map">
+		delete from program_images where organization_id = #{organization_id} AND program_id = #{program_id} AND stored_file_name = #{stored_file_name}
+	</delete>
+	
+	
+	<!-- 프로그램 배너 공백으로 수정 -->
+	<update id="deleteBanner" parameterType="map">
+		update programs set banner_file_name = '', original_file_name = '' where organization_id = #{organization_id} AND program_id = ${program_id}
+	</update>
+	
+	<!-- 분야별 프로그램명 검색 -->
+	<select id="searchProgramType" resultType="contribution.model.ProgramBannerDto" parameterType="map">
+		select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1 and type_id = #{type_id} and program_subject like concat('%',#{searchKeyword},'%')
+	</select>
+		
+	<!-- 전체 프로그램명 검색 -->
+	<select id="searchProgram" resultType="contribution.model.ProgramBannerDto" parameterType="String">
+				select organization_id, program_id, program_subject, summary, banner_file_name from programs where approval_flg = 1 and program_subject like concat('%',#{searchKeyword},'%')
+	</select>
+	
+</mapper>

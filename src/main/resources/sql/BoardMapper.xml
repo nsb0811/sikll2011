@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="project">
+
+	<!-- 기부 내역 추가 -->
+	<insert id="insertContribution">
+		insert into
+		contribution_history(user_idx,organization_name,program_name,date,contribution,note,register_type_flg)
+		values(#{user_idx},#{organization_name},#{program_name},#{date},#{contribution},#{note},#{register_type_flg})
+	</insert>
+
+	<!-- 카카오&네이버 기부 내역 추가 -->
+	<insert id="payInsertContribution" parameterType="contribution.model.ContributionDto">
+		insert into
+		contribution_history(user_idx,organization_name,program_name,date,contribution,register_type_flg,organization_id,program_id)
+		values(#{user_idx},#{organization_name},#{program_name},#{date},#{contribution},#{register_type_flg},#{organization_id},#{program_id})
+	</insert>
+
+	<!-- q&a입력 -->
+	<insert id="insertQandA">
+		insert into
+		question_boards(user_idx,subject,content,register_date)
+		values(#{user_idx},#{subject},#{content},now())
+	</insert>
+
+	<!-- 기부내역 리스트 -->
+	<select id="ContributionList"
+		resultType="contribution.model.ContributionDto">
+		select * from contribution_history where
+		user_idx=#{user_idx}
+	</select>
+
+	<!-- q&a 리스트 -->
+	<select id="QandAList" resultType="contribution.model.QandADto">
+		select * from question_boards
+		where user_idx=#{user_idx}
+	</select>
+
+	<!-- 기부내역 상세 글 보기 -->
+	<select id="ContributionContent"
+		resultType="contribution.model.ContributionDto">
+		select
+		* from contribution_history where
+		contribution_history_idx=#{contribution_history_idx}
+	</select>
+
+	<!-- q&a 상세 글 보기 -->
+	<select id="QandAContent"
+		resultType="contribution.model.QandADto">
+		select
+		status_id,subject,content,answer,register_date
+		from
+		question_boards
+		where
+		board_idx=#{board_idx}
+	</select>
+
+	<!-- 기부 내역 삭제하기 -->
+	<delete id="delete">
+		delete from contribution_history where
+		contribution_history_idx=#{contribution_history_idx}
+	</delete>
+
+	<!-- 기부 내역 수정 -->
+	<update id="update">
+		update contribution_history set
+		organization_name=#{organization_name},program_name=#{program_name},date=#{date}
+		,contribution=#{contribution},note=#{note}
+		where
+		contribution_history_idx=#{contribution_history_idx}
+	</update>
+
+	<!-- 회원정보 받아오기 -->
+	<select id="updateform"
+		resultType="contribution.model.UserCommand">
+		select * from users where user_idx=#{user_idx}
+	</select>
+
+	<!-- 회원정보 수정 -->
+	<update id="updateUser">
+		update users set
+		password=#{password},name=#{name},birthday=#{birthday}
+		,nickname=#{nickname},phone_number=#{phone_number}
+		where
+		user_idx=#{user_idx}
+	</update>
+
+	<!-- 회원탈퇴 비밀번호 체크 -->
+	<select id="deleteUserCheck" parameterType="map"
+		resultType="contribution.model.UserCommand">
+		select * from users where user_idx=#{user_idx} and
+		password=#{password}
+	</select>
+
+	<!-- 회원 탈퇴 -->
+	<delete id="deleteUser">
+		delete from users where
+		user_idx=#{user_idx}
+	</delete>
+
+	<!-- 공지사항 리스트 -->
+	<select id="noticeList"
+		resultType="contribution.model.NoticeDto">
+		select * from notices
+	</select>
+
+	<!-- 공지사항 상세 글 보기 -->
+	<select id="noticeContent"
+		resultType="contribution.model.NoticeDto">
+		select
+		* from notices where
+		notice_idx=#{notice_idx}
+	</select>
+
+	<!-- 공지사항 조회수 올리기 -->
+	<update id="noticeReadcount">
+		update notices set readcount=readcount+1 where
+		notice_idx=#{notice_idx}
+	</update>
+	
+	<!-- 즐겨찾기 리스트 -->
+	<select id="bookmarkList" parameterType="int" resultType="contribution.model.BookmarkDto">
+    select * from organization_bookmarks where user_idx=#{user_idx}
+    </select>
+
+</mapper>

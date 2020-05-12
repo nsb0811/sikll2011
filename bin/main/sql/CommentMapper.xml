@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="comment">
+
+	<!-- 댓글등록 -->
+	<insert id="insertComment" parameterType="contribution.model.Comment">
+		insert into comments (organization_id, program_id, user_idx, comment_id, content, register_date) values (#{organization_id}, #{program_id}, #{user_idx}, now(), #{content}, #{register_date})
+	</insert>
+	
+	<!-- 댓글등록시의 comment_id습득 -->
+	<select id="selectCommentId" resultType="int" parameterType="map">
+		select max(comment_id) from comments where organization_id = #{organization_id} AND program_id = #{program_id} AND user_idx = #{user_idx}
+	</select>
+	
+	<!-- 신고댓글 -->
+	<insert id="insertReportComment" parameterType="contribution.model.ReportComment">
+		insert into report_comments values (#{organization_id}, #{program_id}, #{user_idx}, #{comment_id}, #{reporter_idx})
+	</insert>
+	
+	<!-- 첫번재 댓글신고 || 5번째 댓글신고 || alert후에 notify_flg변경시 -->
+	<update id="alertComment" parameterType="contribution.model.Comment">
+		update comments set report_notify_flg = #{report_notify_flg} where organization_id = #{organization_id} AND program_id = #{program_id} AND user_idx = #{user_idx} AND comment_id = #{comment_id}
+	</update>
+	
+	<!-- 다섯번째 댓글신고 notify_flg, block_flg 한번에 변경 -> 모두에게 block처리 -->
+	<update id="blockComment" parameterType="contribution.model.Comment">
+		update view_comments set block_flg = 1,report_notify_flg = 1  where organization_id = #{organization_id} AND program_id = #{program_id} AND user_idx = #{user_idx} AND comment_id = #{comment_id}
+	</update>
+	
+	<!-- 모집프로그램의 block되지 않은 댓글만 출력 = view_comments이용 -->
+	<select id="getAllComment" resultType="contribution.model.CommentViewDto" parameterType="map">
+		select * from view_comments where organization_id = #{organization_id} AND program_id = #{program_id} AND block_flg = 0
+	</select>
+	
+ 	<!-- 모집프로그램의 block되지 않은 댓글만 출력 = view_comments이용 -->
+	<!--<select id="getAllComment" resultType="contribution.model.CommentViewDto" parameterType="map">
+		select * from view_comments_report where organization_id = #{organization_id} AND program_id = #{program_id}
+	</select>  -->
+	
+	<!-- 댓글의 신고수 count -> 5개면 blockComment호출해서 완전 block처리-->
+	<select id="selectReportCommentCount" resultType="int" parameterType="contribution.model.Comment">
+		select count(*) from report_comments where organization_id = #{organization_id} AND program_id = #{program_id} AND user_idx = #{user_idx} AND comment_id = #{comment_id}
+	</select>
+	
+	<!-- 신고한 댓글인지 count확인-->
+	<select id="checkReportedComment" resultType = "int" parameterType="contribution.model.ReportComment">
+		select count(*) from report_comments where organization_id = #{organization_id} AND program_id = #{program_id} AND user_idx = #{user_idx} AND comment_id = #{comment_id} and reporter_idx = #{reporter_idx}
+	</select>
+	
+	<!-- 로그인시 alert해줘야하는 댓글이 있는지 count체크 -->
+	<select id="notifyCheck" resultType = "int" parameterType="int">
+		select count(*) from comments where user_idx = #{user_idx} AND report_notify_flg = 1
+	</select>
+	
+	<!-- alert후에 모든 comment의 flg수정 -->
+	<update id="updateNotifyFlg" parameterType="int">
+		update comments set report_notify_flg = 0 where user_idx = #{user_idx}
+	</update>
+	
+	
+</mapper>
